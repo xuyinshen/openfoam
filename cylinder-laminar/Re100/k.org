@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      k;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 0.15;   // k = 1.5 * (U_inf * I)^2, I≈1%
+
+boundaryField
+{
+    inlet
+    {
+        type    fixedValue;
+        value   uniform 0.15;
+    }
+    outlet   { type zeroGradient; }
+    walls    { type kqRWallFunction; value uniform 0.15; }
+    cylinder { type kqRWallFunction; value uniform 0.15; }
+}

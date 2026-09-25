@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      omega;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 -1 0 0 0 0];
+internalField   uniform 150;    // omega = k^0.5 / (Cmu^0.25 * L)
+
+boundaryField
+{
+    inlet
+    {
+        type    fixedValue;
+        value   uniform 150;
+    }
+    outlet   { type zeroGradient; }
+    walls    { type omegaWallFunction; value uniform 150; }
+    cylinder { type omegaWallFunction; value uniform 150; }
+}

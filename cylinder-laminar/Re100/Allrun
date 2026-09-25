@@ -1,0 +1,38 @@
+#!/bin/sh
+cd ${0%/*} || exit 1
+
+# 1. 生成背景网格
+
+rm -rf constant/extendedFeatureEdgeMesh
+rm -rf constant/polyMesh
+rm -rf 0.*
+rm -rf process*
+cp -r U.org 0/U
+cp -r p.org 0/p
+cp -r k.org 0/k
+cp -r omega.org 0/omega
+cp -r nut.org 0/nut
+
+cp -r /mnt/c/Users/KazeKaminari/Desktop/cylinder.stl ./constant/geometry/cylinder.stl
+blockMesh
+
+# 2. 生成表面特征（用于 snappyHexMesh 的 features）
+surfaceFeatures
+
+# 3. 生成贴体网格
+snappyHexMesh -overwrite
+
+# 4. 检查网格
+decomposePar
+
+# 5. 运行求解器（稳态）
+# simpleFoam
+
+# incompressibleFluid
+
+# pimpleFoam
+
+mpirun -np 8 foamRun -solver incompressibleFluid -parallel
+reconstructPar
+
+echo "Done!"
