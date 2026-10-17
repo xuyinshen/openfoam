@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // 1. 创建水滴下落路径的圆柱体区域
+    {
+        name    refineRegion;
+        type    cellSet;
+        action  new;           // new 表示新建一个集合
+        source  cylinderToCell;
+        sourceInfo
+        {
+            // 圆柱体的两个底面中心点（Z轴稍微延伸出计算域，确保完全覆盖）
+            p1      (0 0 -0.005); 
+            p2      (0 0 0.025);  
+            // 半径设为 5mm。你的水滴半径是 2.15mm，5mm 足够容纳水滴下落时的拉长变形以及 VOF 界面的厚度。
+            radius  0.005;         
+        }
+    }
+    
+    // 2. 添加底部碰撞铺展区域
+    {
+        name    refineRegion;
+        type    cellSet;
+        action  add;           // add 表示将新区域追加到刚才创建的 refineRegion 中
+        source  boxToCell;
+        sourceInfo
+        {
+            // 长方体的最小和最大顶点坐标
+            // X 和 Y 稍微超出你的计算域(-0.01~0.01)一点点没关系，topoSet 会自动截断
+            // Z 从底部 0 延伸到 0.008 (8mm厚度)，足够模拟水滴撞击后的溅射高度
+            box (-0.021 -0.021 -0.001) (0.021 0.021 0.008); 
+        }
+    }
+);
+
+// ************************************************************************* //

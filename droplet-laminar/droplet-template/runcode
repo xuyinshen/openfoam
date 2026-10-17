@@ -1,0 +1,1 @@
+cp -r alpha.water.org 0/alpha.water;cp -r U.org 0/U;rm -rf 0.*;rm -rf 0/polyMesh;blockMesh;rm -rf processor*;topoSet;refineMesh -overwrite;setFields;rm -rf 0/C*;decomposePar;mpirun -np 8 interFoam -parallel;reconstructPar;

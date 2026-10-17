@@ -1,0 +1,41 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  9
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      refineMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// 指定要加密的 cellSet 名称（必须和 topoSetDict 里的 name 一致）
+set             refineRegion;
+
+// 使用全局坐标系
+coordinateSystem global;
+
+// 在 X, Y, Z 三个方向都进行切割加密
+directions
+(
+    x
+    y
+    z
+);
+
+useHexTopology  true;
+
+useSetTopology  true;
+
+// 👇 关键补充：告诉程序加密后必须写出新的网格文件
+writeMesh       yes;
+
+// 👇 关键补充：是否写出流场文件。
+// 设为 no。因为网格变了，旧的流场数据已经没用了，我们稍后会重新运行 setFields 初始化。
+writeFields     no;
+
+// ************************************************************************* //
