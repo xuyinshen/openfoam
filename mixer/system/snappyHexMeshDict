@@ -1,0 +1,154 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// snappyHexMesh for the sliding-mesh mixer.
+//
+//   impeller.stl  : closed 6-blade star solid -> meshed around (becomes a
+//                   moving wall that lives inside the rotating cellZone).
+//   rotorZone.stl : closed cylinder (r=0.22, z 0.16..0.34) that is NOT a wall;
+//                   it defines an internal faceZone "rotorInterface" plus the
+//                   cellZone "rotor". This cylinder is a surface of revolution
+//                   about z, so the later rotational nonConformalCyclic couple
+//                   stays perfectly matched at every rotation angle.
+//
+// Stage 1 only checks the mesh. createBaffles + createNonConformalCouples turn
+// "rotorInterface" into the sliding patches in Stage 2.
+
+castellatedMesh true;
+snap          true;
+addLayers        false;
+
+geometry
+{
+    impeller
+    {
+        type triSurfaceMesh;
+        name impeller;
+        file "impeller.stl";
+    }
+    rotorZone
+    {
+        type triSurfaceMesh;
+        name rotorZone;
+        file "rotorZone.stl";
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells       1000000;
+    maxGlobalCells      2000000;
+    minRefinementCells  0;
+    maxLoadUnbalance    0.5;
+    nCellsBetweenLevels 2;
+
+    features
+    (
+        {
+            file    "impeller.eMesh";
+            level   2;
+        }
+    );
+
+    refinementSurfaces
+    {
+        // Closed solid -> wall patch. Blades live inside the rotor cellZone, so
+        // the rotating mesh carries them (solidBody motion); tagged as a moving
+        // wall for the field boundary conditions.
+        impeller
+        {
+            level (2 3);
+            patchInfo
+            {
+                type wall;
+                inGroups (wall movingWalls);
+            }
+        }
+
+        // Closed cylinder: NOT a wall. It cuts an internal faceZone
+        // "rotorInterface" (the sliding couple) and a cellZone "rotor" for the
+        // cells inside (mode=inside keeps the interior as mesh). The cylinder is
+        // a surface of revolution about z, so the later rotational
+        // nonConformalCyclic couple stays perfectly matched at every angle.
+        rotorZone
+        {
+            level (2 2);
+            faceZone rotorInterface;
+            cellZone rotor;
+            mode     inside;
+        }
+    }
+
+    // Point that must be inside the fluid: a tank corner, outside the rotor
+    // cylinder (r=0.34 > 0.22) and outside the impeller.
+    locationInMesh (0.24 0.24 0.25);
+
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle 30;
+}
+
+snapControls
+{
+    nSmoothPatch     4;
+    tolerance        2.0;
+    nSolveIter       300;
+    nRelaxIter       5;
+    nFeatureSnapIter 15;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+    finalLayerThickness 0.3;
+}
+
+meshQualityControls
+{
+    maxNonOrtho         65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave          80;
+    minVol              -1e30;
+    minTetQuality       -1;
+    minTwist            0.02;
+    minDeterminant      0.01;
+    minFaceWeight       0.1;
+    minVolRatio         0.02;
+    minTriangleTwist    -1;
+    nSmoothScale        4;
+    errorReduction      0.75;
+
+    relaxed
+    {
+        maxNonOrtho 75;
+        minDeterminant 0.005;
+        minFaceWeight  0.05;
+    }
+}
+
+debug           0;
+writeFlags
+(
+    scalarLevels
+    layerSets
+    layerFields
+);
+
+mergeTolerance    1e-6;
+
+// ************************************************************************* //

@@ -1,0 +1,91 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Solver settings adapted from the plane6 reference (PCG+DIC for p,
+// smoothSolver+symGaussSeidel for U/k/omega -- gentler on imperfect snappy
+// cells than PBiCGStab), plus the keys foamRun's sliding/dynamic mesh needs:
+// pcorr, correctPhi, correctMeshPhi. More outer correctors + relaxation are
+// enabled to damp the first-steps divergence.
+
+solvers
+{
+    pcorr
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       0.1;
+        relTol          0;
+    }
+
+    p
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-08;
+        relTol          0.1;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+
+    "(U|k|omega)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-08;
+        relTol          0.1;
+    }
+
+    "(U|k|omega)Final"
+    {
+        $U;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    nOuterCorrectors          3;
+    nCorrectors               2;
+    nNonOrthogonalCorrectors  2;
+
+    momentumPredictor         yes;
+    correctPhi                yes;
+    correctMeshPhi            no;
+
+    pRefCell                  0;
+    pRefValue                 0;
+}
+
+// Relaxation active because nOuterCorrectors > 1; tames the startup spike.
+relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.9;
+        "(k|omega)"     0.7;
+        ".*"            1;
+    }
+}
+
+// ************************************************************************* //

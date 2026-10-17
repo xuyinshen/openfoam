@@ -1,0 +1,37 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Sliding-mesh motion for the mixer.
+//
+// The cellZone "rotor" (created by snappyHexMesh from rotorZone.stl) is moved
+// as a rigid body about the z axis. The impeller blades are walls inside this
+// zone, so they are carried by the same solid-body rotation. The cylindrical
+// rotorInterface (surface of revolution about z) stays matched through the
+// rotational nonConformalCyclic couple at every angle.
+
+mover
+{
+    type            motionSolver;
+
+    libs            ("libfvMotionSolvers.so");
+
+    motionSolver    solidBody;
+
+    cellZone        rotor;
+
+    solidBodyMotionFunction  rotatingMotion;
+
+    origin          (0 0 0);
+    axis            (0 0 1);
+
+    // Impeller speed. 60 rpm = 1 rev/s; sign sets rotation direction.
+    omega           60 [rpm];
+}
+
+// ************************************************************************* //

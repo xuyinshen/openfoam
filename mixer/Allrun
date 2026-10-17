@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sh ./MakeMesh && sh ./SolveRun
+
+echo ">>> mixer: MakeMesh + SolveRun finished."
+
+# -----------------------------------------------------------------------------

@@ -1,0 +1,37 @@
+#!/bin/sh
+
+rm -rf constant/polyMesh
+rm -rf constant/extendedFeatureEdgeMesh
+rm -rf constant/triSurface/eMesh
+rm -rf constant/triSurface/extendedFeatureEdgeMesh
+rm -rf processor.*
+rm -f  log.*
+
+cp -f U.org     0/U
+cp -f p.org     0/p
+cp -f k.org     0/k
+cp -f omega.org 0/omega
+cp -f nut.org   0/nut
+
+echo "==> blockMesh"
+blockMesh 2>&1 | tee log.blockMesh
+
+echo "==> surfaceFeatures"
+surfaceFeatures 2>&1 | tee log.surfaceFeatures
+
+echo "==> snappyHexMesh
+
+snappyHexMesh -overwrite 2>&1 | tee log.snappyHexMesh
+
+# later decomposePar doesn't try to distribute their (now-stale) boundaryField.
+rm -f 0/cellLevel 0/pointLevel 0/pointLevels
+
+echo "==> createBaffles: rotorInterface -> slidingRotor / slidingStator (group nonCouple)"
+createBaffles -overwrite 2>&1 | tee log.createBaffles
+
+echo "==> createNonConformalCouples: rotational sliding couple about z"
+createNonConformalCouples 2>&1 | tee log.createNonConformalCouples
+
+echo "MakeMesh done. Next: ./SolveRun"
+
+# -----------------------------------------------------------------------------

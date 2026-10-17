@@ -1,0 +1,47 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      createBafflesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Split the internal "rotorInterface" faceZone (the cylinder cut by snappy)
+// into two coincident boundary patches -- one on the rotor (owner) side, one on
+// the stator (neighbour) side. createNonConformalCouples then rotational-couples
+// them into the sliding interface. Both halves carry the "nonCouple" patch group
+// so the leftover plain-patch faces are covered by patch-safe BCs in the 0 files.
+
+internalFacesOnly true;
+
+baffles
+{
+    slidingInterface
+    {
+        type        faceZone;
+        zoneName    rotorInterface;
+
+        owner
+        {
+            name        slidingRotor;
+            type        patch;
+            inGroups    (nonCouple);
+        }
+
+        neighbour
+        {
+            name        slidingStator;
+            type        patch;
+            inGroups    (nonCouple);
+        }
+    }
+}
+
+// ************************************************************************* //

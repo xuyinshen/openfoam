@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      createNonConformalCouplesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+//
+// Couple the two baffle halves (created by createBaffles from the
+// "rotorInterface" faceZone) into a rotational non-conformal sliding interface.
+//
+//   transform rotational : the two sides pass through each other about the axis
+//   rotationAxis (0 0 1)  : z is the impeller shaft
+//   rotationCentre (0 0 0): shaft through the tank centre
+//   rotationAngle 0       : start coincident; the mesh mover turns the rotor
+//
+// Because rotorInterface is a cylinder coaxial with the rotation axis (a
+// surface of revolution), the patchToPatch coverage stays full at every angle,
+// which is what previously diverged with a planar interface.
+
+nonConformalCouples
+{
+    slidingInterface
+    {
+        patches         (slidingRotor slidingStator);
+        transform       rotational;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   0;
+    }
+}
+
+// ************************************************************************* //

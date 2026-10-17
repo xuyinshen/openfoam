@@ -1,0 +1,41 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      k;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -2 0 0 0 0];
+
+internalField   uniform 0.005;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    wall
+    {
+        type            kqRWallFunction;
+        value           uniform 0.005;
+    }
+
+    // Leftover original interface faces. These patches stay type "patch"
+    // (createNonConformalCouples does not convert them to wall), so they
+    // cannot take wall functions -- use patch-safe conditions instead,
+    // exactly as the official impeller tutorial does for its nonCouple group.
+    nonCouple
+    {
+        type            zeroGradient;
+    }
+}
+
+// ************************************************************************* //

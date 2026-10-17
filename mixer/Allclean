@@ -1,0 +1,35 @@
+#!/bin/sh
+# -----------------------------------------------------------------------------
+# Allclean - remove generated mesh, decomposition, result times and logs so
+# ./Allrun (or ./MakeMesh) starts clean. Keeps the case source: 0/ templates
+# (.org), system/*, constant/{momentumTransport,physicalProperties,dynamicMeshDict,
+# triSurface/*.stl}, geometry/.
+# -----------------------------------------------------------------------------
+cd ${0%/*} || exit 1
+
+# decomposed meshes + per-processor results
+rm -rf processor.*
+
+# generated mesh + snappy feature/zone output
+rm -rf constant/polyMesh
+rm -rf constant/extendedFeatureEdgeMesh
+rm -rf constant/triSurface/eMesh
+rm -rf constant/triSurface/extendedFeatureEdgeMesh
+
+# reconstructed/serial result time directories (keep 0)
+for d in [0-9]*; do
+    [ -d "$d" ] || continue
+    case "$d" in
+        0) : ;;
+        *) rm -rf "$d" ;;
+    esac
+done
+
+# snappy debug fields + logs
+rm -f  0/cellLevel 0/pointLevel 0/pointLevels
+rm -f  log.*
+rm -rf snapshots
+
+echo "mixer_n cleaned."
+
+# -----------------------------------------------------------------------------

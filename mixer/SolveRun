@@ -1,0 +1,30 @@
+#!/bin/sh
+
+NP=8
+MPIRUN="mpirun --oversubscribe -np $NP"
+
+rm -rf processor.*
+rm -rf 0.*
+
+# fresh BCs against the final mesh
+cp -f U.org     0/U
+cp -f p.org     0/p
+cp -f k.org     0/k
+cp -f omega.org 0/omega
+cp -f nut.org   0/nut
+
+rm -f 0/cellLevel 0/pointLevel 0/pointLevels
+
+echo "==> decomposePar"
+decomposePar 2>&1 | tee log.decomposePar
+
+echo "==> foamRun -parallel"
+$MPIRUN foamRun -parallel 2>&1 | tee log.foamRun
+
+echo "==> reconstructPar"
+reconstructPar 2>&1 | tee log.reconstructPar
+
+echo ""
+echo "SolveRun done. Visualise: paraFoam"
+
+# -----------------------------------------------------------------------------
